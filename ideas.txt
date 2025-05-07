@@ -1,0 +1,112 @@
+🎯 Escopo do Projeto: Plataforma de Cursos Online (Udemy Clone)
+🧩 Funcionalidades Principais
+🔐 1. Autenticação e Autorização
+Cadastro e login com senhas criptografadas (bcrypt).
+
+Roles: admin, instrutor, aluno.
+
+JWT Access Token e Refresh Token.
+
+Proteção de rotas com guards e decorators (@Roles()).
+
+👤 2. Gerenciamento de Usuários
+CRUD de usuários (somente admin).
+
+Upload de foto de perfil (avatar).
+
+Diferenciação entre instrutores e alunos por role.
+
+🎓 3. Gestão de Cursos
+CRUD de cursos (instrutores).
+
+Campos: título, descrição, preço, categoria, nível, thumbnail, status (rascunho/publicado).
+
+Upload de thumbnail com armazenamento estático/local.
+
+🧱 4. Seções e Aulas
+Cada curso pode ter múltiplas seções.
+
+Cada seção pode ter múltiplas aulas.
+
+Aulas contêm título, descrição e vídeo (upload ou link YouTube/Vimeo).
+
+Relacionamentos:
+
+Curso 1:N Seções
+
+Seção 1:N Aulas
+
+💳 5. Compra de Cursos
+Simulação de compra (sem integração com pagamento real).
+
+Alunos podem adquirir cursos e tê-los listados no perfil.
+
+Relacionamento Aluno N:N Cursos.
+
+📺 6. Acesso às Aulas
+Apenas alunos que compraram o curso conseguem assistir.
+
+Endpoint protegido para consumir os vídeos/aulas.
+
+🌟 7. Sistema de Avaliações
+Alunos podem avaliar cursos com 1 a 5 estrelas e deixar comentários.
+
+Um aluno pode avaliar um curso apenas uma vez.
+
+Cursos exibem nota média e comentários visíveis a todos.
+
+📊 8. Dashboard com Estatísticas
+Instrutores veem:
+
+Total de cursos, total de alunos, avaliações médias, cursos mais vendidos.
+
+Admins veem:
+
+Número total de usuários, total de vendas, cursos mais acessados.
+
+🧪 Testes Automatizados
+Testes unitários com Jest para services e guards.
+
+Testes E2E com supertest para rotas públicas e protegidas.
+
+🚀 Deploy
+Hospedagem na GCP (Google Cloud Platform).
+
+Backend com NestJS + PM2.
+
+Banco de dados PostgreSQL.
+
+Proxy reverso com Nginx.
+
+Certificado SSL com Let's Encrypt.
+
+🗃️ Organização Modular (NestJS)
+bash
+Copy
+Edit
+src/
+├── auth/              # Login, JWT, guards
+├── users/             # CRUD, roles, avatar
+├── courses/           # Cursos e thumbnails
+├── sections/          # Seções de cursos
+├── lessons/           # Aulas com vídeos
+├── purchases/         # Controle de compra
+├── reviews/           # Avaliações e comentários
+├── dashboard/         # Estatísticas
+├── common/            # Pipes, filters, decorators
+├── config/            # Env, banco de dados
+🧰 Tecnologias Utilizadas
+Backend: NestJS + TypeScript
+
+Banco de dados: PostgreSQL
+
+ORM: TypeORM
+
+Autenticação: JWT + bcrypt
+
+Upload de arquivos: Multer, ServeStaticModule
+
+Testes: Jest + Supertest
+
+Deploy: GCP + Docker (opcional) + Nginx
+
