@@ -5,7 +5,7 @@ import { DashboardService } from './dashboard.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
-import { Role } from '../auth/role.enum';
+import { Role } from '../auth/decorators/role.enum';
 
 @Controller('dashboard')
 export class DashboardController {

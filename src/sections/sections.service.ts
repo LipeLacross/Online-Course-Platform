@@ -1,62 +1,53 @@
-// File: src/sections/sections.service.ts
-
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateSectionDto } from './dto/create-section.dto';
 import { UpdateSectionDto } from './dto/update-section.dto';
-
-interface Section {
-  id: number;
-  title: string;
-  courseId: number;
-  order: number;
-}
+import { Section } from './entities/section.entity';
 
 @Injectable()
 export class SectionsService {
   private sections: Section[] = [];
   private nextId = 1;
 
-  // Cria uma nova seção
-  create(createDto: CreateSectionDto) {
-    const section: Section = {
-      id: this.nextId++,
-      ...createDto,
-    };
+  // Ensure that create method returns a Promise<Section>
+  create(createDto: CreateSectionDto): Promise<Section> {
+    const section = new Section();
+    section.id = this.nextId++;
+    Object.assign(section, createDto);
     this.sections.push(section);
-    return { message: 'Seção criada com sucesso', section };
+    return Promise.resolve(section); // Wrap return in Promise.resolve
   }
 
-  // Lista todas as seções, opcionalmente filtrando por curso
-  findAll(courseId?: number) {
-    if (courseId !== undefined) {
-      return this.sections.filter(s => s.courseId === courseId);
+  // Ensure findAll returns Promise<Section[]> (array of sections)
+  findAll(courseId?: number): Promise<Section[]> {
+    if (courseId) {
+      return Promise.resolve(this.sections.filter(section => section.courseId === courseId));
     }
-    return this.sections;
+    return Promise.resolve(this.sections); // Wrap return in Promise.resolve
   }
 
-  // Obtém uma seção pelo ID
-  findOne(id: number) {
+  // Ensure findOne returns Promise<Section>
+  findOne(id: number): Promise<Section> {
     const section = this.sections.find(s => s.id === id);
     if (!section) {
-      throw new NotFoundException(`Seção com ID ${id} não encontrada`);
+      throw new NotFoundException(`Section with ID ${id} not found`);
     }
-    return section;
+    return Promise.resolve(section); // Wrap return in Promise.resolve
   }
 
-  // Atualiza uma seção existente
-  update(id: number, updateDto: UpdateSectionDto) {
-    const section = this.findOne(id);
+  // Ensure update method returns Promise<Section>
+  update(id: number, updateDto: UpdateSectionDto): Promise<Section> {
+    const section = this.findOne(id);  // Will throw error if section not found
     Object.assign(section, updateDto);
-    return { message: 'Seção atualizada com sucesso', section };
+    return Promise.resolve(section); // Wrap return in Promise.resolve
   }
 
-  // Remove uma seção
-  remove(id: number) {
-    const idx = this.sections.findIndex(s => s.id === id);
-    if (idx === -1) {
-      throw new NotFoundException(`Seção com ID ${id} não encontrada`);
+  // Ensure remove method returns Promise<{ message: string }>
+  remove(id: number): Promise<{ message: string }> {
+    const index = this.sections.findIndex(s => s.id === id);
+    if (index === -1) {
+      throw new NotFoundException(`Section with ID ${id} not found`);
     }
-    this.sections.splice(idx, 1);
-    return { message: 'Seção removida com sucesso' };
+    this.sections.splice(index, 1);
+    return Promise.resolve({ message: 'Section removed successfully' }); // Wrap return in Promise.resolve
   }
 }

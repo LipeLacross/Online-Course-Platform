@@ -18,7 +18,7 @@ export class PurchasesService {
   private nextId = 1;
 
   // Simula a compra de um curso
-  buy(createPurchaseDto: CreatePurchaseDto) {
+  buy(createPurchaseDto: CreatePurchaseDto): Promise<{ message: string; purchase: Purchase }> {
     const purchase: Purchase = {
       id: this.nextId++,
       userId: createPurchaseDto.userId,
@@ -27,21 +27,21 @@ export class PurchasesService {
       status: 'completed',
     };
     this.purchases.push(purchase);
-    return { message: 'Compra realizada com sucesso', purchase };
+    return Promise.resolve({ message: 'Compra realizada com sucesso', purchase });  // Retornando uma Promise
   }
 
   // Lista todas as compras
-  findAll() {
-    return this.purchases;
+  findAll(): Promise<Purchase[]> {
+    return Promise.resolve(this.purchases);  // Envolvendo o retorno com Promise.resolve()
   }
 
   // Lista compras de um usuário específico
-  findByUser(userId: number) {
-    return this.purchases.filter(p => p.userId === userId);
+  findByUser(userId: number): Promise<Purchase[]> {
+    return Promise.resolve(this.purchases.filter(p => p.userId === userId));  // Envolvendo com Promise.resolve()
   }
 
   // Atualiza o status de uma compra
-  update(id: number, updateDto: UpdatePurchaseDto) {
+  update(id: number, updateDto: UpdatePurchaseDto): Promise<{ message: string; purchase: Purchase }> {
     const purchase = this.purchases.find(p => p.id === id);
     if (!purchase) {
       throw new NotFoundException(`Compra com ID ${id} não encontrada`);
@@ -49,26 +49,26 @@ export class PurchasesService {
     if (updateDto.status) {
       purchase.status = updateDto.status;
     }
-    return { message: 'Compra atualizada com sucesso', purchase };
+    return Promise.resolve({ message: 'Compra atualizada com sucesso', purchase });  // Retornando uma Promise
   }
 
   // Remove uma compra
-  remove(id: number) {
+  remove(id: number): Promise<{ message: string }> {
     const index = this.purchases.findIndex(p => p.id === id);
     if (index === -1) {
       throw new NotFoundException(`Compra com ID ${id} não encontrada`);
     }
     this.purchases.splice(index, 1);
-    return { message: 'Compra removida com sucesso' };
+    return Promise.resolve({ message: 'Compra removida com sucesso' });  // Retornando uma Promise
   }
 
   // Exemplo de método de estatística usado no Dashboard
-  getTotalSales() {
+  getTotalSales(): number {
     return this.purchases.length;
   }
 
   // Exemplo de cálculo de avaliação média usado no Dashboard (placeholder)
-  getAverageCourseRating() {
+  getAverageCourseRating(): number {
     return 4.5; // valor fixo para exemplo
   }
 }

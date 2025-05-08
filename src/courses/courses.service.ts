@@ -1,22 +1,29 @@
+// File: src/courses/courses.service.ts
+
 import { Injectable } from '@nestjs/common';
-import { CreateCourseDto } from './dto/create-course.dto';
+import { Repository } from 'typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Course } from './entities/course.entity';  // Certifique-se de que o caminho está correto
 
 @Injectable()
 export class CoursesService {
-  private courses = []; // Simulação de um banco de dados (um array de cursos)
+  constructor(
+    @InjectRepository(Course) private repo: Repository<Course>,  // Injetando o repositório do Course
+  ) {}
 
-  // Método para criar um novo curso
-  create(createCourseDto: CreateCourseDto) {
-    const newCourse = {
-      id: this.courses.length + 1,  // Gerar um ID simples para o novo curso
-      ...createCourseDto,           // Adicionar os dados do curso
-    };
-    this.courses.push(newCourse);
-    return { message: 'Curso criado com sucesso', course: newCourse };
+  // Método para criar um curso
+  create(createDto: Partial<Course>) {
+    const course = this.repo.create(createDto); // Cria um novo curso com os dados fornecidos
+    return this.repo.save(course); // Salva o curso no banco de dados
   }
 
   // Método para listar todos os cursos
   findAll() {
-    return this.courses;
+    return this.repo.find(); // Retorna todos os cursos
+  }
+
+  // Método opcional para retornar os cursos mais recentes no Dashboard
+  getTopCourses() {
+    return this.repo.find({ order: { id: 'DESC' }, take: 5 }); // Retorna os 5 cursos mais recentes
   }
 }

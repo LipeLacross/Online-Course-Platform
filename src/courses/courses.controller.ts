@@ -1,3 +1,4 @@
+//courses.controller.ts
 import { Controller, Get, Post, Body } from '@nestjs/common';
 import { CoursesService } from './courses.service';
 import { CreateCourseDto } from './dto/create-course.dto';  // DTO para validação do corpo da requisição

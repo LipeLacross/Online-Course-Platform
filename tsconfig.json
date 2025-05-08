@@ -6,7 +6,7 @@
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "allowSyntheticDefaultImports": true,
-    "target": "ES2023",
+    "target": "ES2023",  // Ou "ES6", "ES2017" se precisar de mais compatibilidade
     "sourceMap": true,
     "outDir": "./dist",
     "baseUrl": "./",
@@ -14,8 +14,8 @@
     "skipLibCheck": true,
     "strictNullChecks": true,
     "forceConsistentCasingInFileNames": true,
-    "noImplicitAny": false,
-    "strictBindCallApply": false,
-    "noFallthroughCasesInSwitch": false
+    "noImplicitAny": true,  // Melhor garantir que não usamos 'any' sem querer
+    "strictBindCallApply": true,  // Para garantir uma verificação mais estrita
+    "noFallthroughCasesInSwitch": true  // Evita casos de switch sem break
   }
 }

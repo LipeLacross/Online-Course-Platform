@@ -19,35 +19,37 @@ export class ReviewsService {
   private nextId = 1;
 
   // Cria uma nova avaliação
-  create(createDto: CreateReviewDto) {
+  create(createDto: CreateReviewDto): Promise<{ message: string; review: Review }> {
     if (createDto.rating < 1 || createDto.rating > 5) {
       throw new BadRequestException('Rating deve ser entre 1 e 5');
     }
+
     // Verifica se o usuário já avaliou este curso
-    const exists = this.reviews.find(r =>
-      r.userId === createDto.userId && r.courseId === createDto.courseId);
+    const exists = this.reviews.find(r => r.userId === createDto.userId && r.courseId === createDto.courseId);
     if (exists) {
       throw new BadRequestException('Usuário já avaliou este curso');
     }
+
     const review: Review = {
       id: this.nextId++,
       ...createDto,
       date: new Date(),
     };
+
     this.reviews.push(review);
-    return { message: 'Avaliação criada com sucesso', review };
+    return Promise.resolve({ message: 'Avaliação criada com sucesso', review });
   }
 
   // Lista todas as avaliações, ou de um curso específico
-  findAll(courseId?: number) {
+  findAll(courseId?: number): Promise<Review[]> {
     if (courseId !== undefined) {
-      return this.reviews.filter(r => r.courseId === courseId);
+      return Promise.resolve(this.reviews.filter(r => r.courseId === courseId));
     }
-    return this.reviews;
+    return Promise.resolve(this.reviews);
   }
 
   // Obtém uma avaliação pelo ID
-  findOne(id: number) {
+  async findOne(id: number): Promise<Review> { // Usei async aqui
     const review = this.reviews.find(r => r.id === id);
     if (!review) {
       throw new NotFoundException(`Review com ID ${id} não encontrada`);
@@ -56,32 +58,35 @@ export class ReviewsService {
   }
 
   // Atualiza uma avaliação
-  update(id: number, updateDto: UpdateReviewDto) {
-    const review = this.findOne(id);
+  async update(id: number, updateDto: UpdateReviewDto): Promise<{ message: string; review: Review }> {
+    const review = await this.findOne(id);  // Adicionando await aqui para esperar a resolução da Promise
+
     if (updateDto.rating !== undefined) {
       if (updateDto.rating < 1 || updateDto.rating > 5) {
         throw new BadRequestException('Rating deve ser entre 1 e 5');
       }
-      review.rating = updateDto.rating;
+      review.rating = updateDto.rating; // Agora 'review' está resolvido, podemos acessar suas propriedades
     }
+
     if (updateDto.comment !== undefined) {
       review.comment = updateDto.comment;
     }
-    return { message: 'Avaliação atualizada com sucesso', review };
+
+    return Promise.resolve({ message: 'Avaliação atualizada com sucesso', review });
   }
 
   // Remove uma avaliação
-  remove(id: number) {
+  remove(id: number): Promise<{ message: string }> {
     const index = this.reviews.findIndex(r => r.id === id);
     if (index === -1) {
       throw new NotFoundException(`Review com ID ${id} não encontrada`);
     }
     this.reviews.splice(index, 1);
-    return { message: 'Avaliação removida com sucesso' };
+    return Promise.resolve({ message: 'Avaliação removida com sucesso' });
   }
 
   // Calcula a média de rating de um curso (para uso no Dashboard)
-  getAverageRating(courseId: number) {
+  getAverageRating(courseId: number): number {
     const courseReviews = this.reviews.filter(r => r.courseId === courseId);
     if (courseReviews.length === 0) return 0;
     const sum = courseReviews.reduce((acc, r) => acc + r.rating, 0);
