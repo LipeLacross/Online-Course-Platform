@@ -1,5 +1,7 @@
-// File: src/users/entities/user.entity.ts
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
+import { Purchase } from '../../purchases/entities/purchase.entity';
+import { Review } from '../../reviews/entities/review.entity';
+import { RefreshToken } from '../../auth/entities/refresh-token.entity';
 
 @Entity()
 export class User {
@@ -10,4 +12,8 @@ export class User {
   @Column() password: string;
   @Column() role: string;
   @Column({ nullable: true }) avatarUrl?: string;
+
+  @OneToMany(() => Purchase, p => p.user) purchases: Purchase[];
+  @OneToMany(() => Review, r => r.user) reviews: Review[];
+  @OneToMany(() => RefreshToken, rt => rt.user) refreshTokens: RefreshToken[];
 }

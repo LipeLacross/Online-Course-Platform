@@ -1,74 +1,59 @@
-// File: src/purchases/purchases.service.ts
-
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import { CreatePurchaseDto } from './dto/create-purchase.dto';
 import { UpdatePurchaseDto } from './dto/update-purchase.dto';
-
-interface Purchase {
-  id: number;
-  userId: number;
-  courseId: number;
-  date: Date;
-  status: 'pending' | 'completed' | 'canceled';
-}
+import { Purchase } from './entities/purchase.entity';
 
 @Injectable()
 export class PurchasesService {
-  private purchases: Purchase[] = [];
-  private nextId = 1;
+  constructor(
+    @InjectRepository(Purchase)
+    private purchaseRepo: Repository<Purchase>,
+  ) {}
 
-  // Simula a compra de um curso
-  buy(createPurchaseDto: CreatePurchaseDto): Promise<{ message: string; purchase: Purchase }> {
-    const purchase: Purchase = {
-      id: this.nextId++,
+  async buy(createPurchaseDto: CreatePurchaseDto): Promise<{ message: string; purchase: Purchase }> {
+    const purchase = this.purchaseRepo.create({
       userId: createPurchaseDto.userId,
       courseId: createPurchaseDto.courseId,
       date: new Date(),
       status: 'completed',
-    };
-    this.purchases.push(purchase);
-    return Promise.resolve({ message: 'Compra realizada com sucesso', purchase });  // Retornando uma Promise
+    });
+    const saved = await this.purchaseRepo.save(purchase);
+    return { message: 'Compra realizada com sucesso', purchase: saved };
   }
 
-  // Lista todas as compras
   findAll(): Promise<Purchase[]> {
-    return Promise.resolve(this.purchases);  // Envolvendo o retorno com Promise.resolve()
+    return this.purchaseRepo.find();
   }
 
-  // Lista compras de um usuário específico
   findByUser(userId: number): Promise<Purchase[]> {
-    return Promise.resolve(this.purchases.filter(p => p.userId === userId));  // Envolvendo com Promise.resolve()
+    return this.purchaseRepo.find({ where: { userId } });
   }
 
-  // Atualiza o status de uma compra
-  update(id: number, updateDto: UpdatePurchaseDto): Promise<{ message: string; purchase: Purchase }> {
-    const purchase = this.purchases.find(p => p.id === id);
-    if (!purchase) {
-      throw new NotFoundException(`Compra com ID ${id} não encontrada`);
-    }
-    if (updateDto.status) {
-      purchase.status = updateDto.status;
-    }
-    return Promise.resolve({ message: 'Compra atualizada com sucesso', purchase });  // Retornando uma Promise
+  async update(
+    id: number,
+    updateDto: UpdatePurchaseDto,
+  ): Promise<{ message: string; purchase: Purchase }> {
+    const purchase = await this.purchaseRepo.findOneBy({ id });
+    if (!purchase) throw new NotFoundException(`Compra com ID ${id} não encontrada`);
+    Object.assign(purchase, updateDto);
+    const updated = await this.purchaseRepo.save(purchase);
+    return { message: 'Compra atualizada com sucesso', purchase: updated };
   }
 
-  // Remove uma compra
-  remove(id: number): Promise<{ message: string }> {
-    const index = this.purchases.findIndex(p => p.id === id);
-    if (index === -1) {
-      throw new NotFoundException(`Compra com ID ${id} não encontrada`);
-    }
-    this.purchases.splice(index, 1);
-    return Promise.resolve({ message: 'Compra removida com sucesso' });  // Retornando uma Promise
+  async remove(id: number): Promise<{ message: string }> {
+    const result = await this.purchaseRepo.delete(id);
+    if (result.affected === 0) throw new NotFoundException(`Compra com ID ${id} não encontrada`);
+    return { message: 'Compra removida com sucesso' };
   }
 
-  // Exemplo de método de estatística usado no Dashboard
-  getTotalSales(): number {
-    return this.purchases.length;
+  getTotalSales(): Promise<number> {
+    return this.purchaseRepo.count();
   }
 
-  // Exemplo de cálculo de avaliação média usado no Dashboard (placeholder)
-  getAverageCourseRating(): number {
-    return 4.5; // valor fixo para exemplo
+  async getAverageCourseRating(): Promise<number> {
+    // Placeholder: implementar se necessário
+    return 4.5;
   }
 }

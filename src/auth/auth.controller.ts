@@ -8,19 +8,16 @@ import { JwtAuthGuard } from './guards/jwt-auth.guard';
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  // Rota para cadastro de novo usuário
   @Post('register')
   async register(@Body() createUserDto: CreateUserDto) {
     return this.authService.register(createUserDto);
   }
 
-  // Rota para login de usuário
   @Post('login')
   async login(@Body() loginUserDto: LoginUserDto) {
     return this.authService.login(loginUserDto);
   }
 
-  // Rota protegida (apenas usuários autenticados podem acessar)
   @Post('protected')
   @UseGuards(JwtAuthGuard)
   protectedRoute() {

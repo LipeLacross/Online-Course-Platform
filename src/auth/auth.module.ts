@@ -1,20 +1,25 @@
+// src/auth/auth.module.ts
 import { Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
-import { UsersModule } from '../users/users.module';  // Certifique-se de que o UsersModule está importado
+import { UsersModule } from '../users/users.module';
+import { User } from '../users/entities/user.entity';
+import { RefreshToken } from './entities/refresh-token.entity';
 import { JwtModule } from '@nestjs/jwt';
 import { JwtStrategy } from './jwt.strategy';
-import { JwtAuthGuard } from './guards/jwt-auth.guard';
 
 @Module({
   imports: [
-    UsersModule,  // Aqui está a importação do UsersModule
+    TypeOrmModule.forFeature([User, RefreshToken]),  // <— aqui
+    UsersModule,
     JwtModule.register({
-      secret: 'yourSecretKey',  // Substitua por uma chave secreta mais segura
+      secret: 'yourSecretKey',
       signOptions: { expiresIn: '1h' },
     }),
   ],
-  providers: [AuthService, JwtStrategy, JwtAuthGuard],
+  providers: [AuthService, JwtStrategy],
   controllers: [AuthController],
+  exports: [AuthService],
 })
 export class AuthModule {}

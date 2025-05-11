@@ -1,13 +1,16 @@
-// File: src/reviews/reviews.module.ts
-
+// src/reviews/reviews.module.ts
 import { Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
 import { ReviewsService } from './reviews.service';
 import { ReviewsController } from './reviews.controller';
+import { Review } from './entities/review.entity';
 
 @Module({
-  imports: [],
+  imports: [
+    TypeOrmModule.forFeature([Review]),  // torna ReviewRepository disponível
+  ],
   controllers: [ReviewsController],
   providers: [ReviewsService],
-  exports: [ReviewsService], // Exporta para uso em outros módulos (Dashboard)
+  exports: [ReviewsService],
 })
 export class ReviewsModule {}

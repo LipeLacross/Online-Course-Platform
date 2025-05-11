@@ -1,95 +1,65 @@
-// File: src/reviews/reviews.service.ts
-
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import { CreateReviewDto } from './dto/create-review.dto';
 import { UpdateReviewDto } from './dto/update-review.dto';
-
-interface Review {
-  id: number;
-  userId: number;
-  courseId: number;
-  rating: number;
-  comment: string;
-  date: Date;
-}
+import { Review } from './entities/review.entity';
 
 @Injectable()
 export class ReviewsService {
-  private reviews: Review[] = [];
-  private nextId = 1;
+  constructor(
+    @InjectRepository(Review)
+    private reviewRepo: Repository<Review>,
+  ) {}
 
-  // Cria uma nova avaliação
-  create(createDto: CreateReviewDto): Promise<{ message: string; review: Review }> {
+  async create(createDto: CreateReviewDto): Promise<{ message: string; review: Review }> {
     if (createDto.rating < 1 || createDto.rating > 5) {
       throw new BadRequestException('Rating deve ser entre 1 e 5');
     }
+    const exists = await this.reviewRepo.findOne({
+      where: { userId: createDto.userId, courseId: createDto.courseId },
+    });
+    if (exists) throw new BadRequestException('Usuário já avaliou este curso');
 
-    // Verifica se o usuário já avaliou este curso
-    const exists = this.reviews.find(r => r.userId === createDto.userId && r.courseId === createDto.courseId);
-    if (exists) {
-      throw new BadRequestException('Usuário já avaliou este curso');
-    }
-
-    const review: Review = {
-      id: this.nextId++,
+    const review = this.reviewRepo.create({
       ...createDto,
       date: new Date(),
-    };
-
-    this.reviews.push(review);
-    return Promise.resolve({ message: 'Avaliação criada com sucesso', review });
+    });
+    const saved = await this.reviewRepo.save(review);
+    return { message: 'Avaliação criada com sucesso', review: saved };
   }
 
-  // Lista todas as avaliações, ou de um curso específico
   findAll(courseId?: number): Promise<Review[]> {
-    if (courseId !== undefined) {
-      return Promise.resolve(this.reviews.filter(r => r.courseId === courseId));
-    }
-    return Promise.resolve(this.reviews);
+    return this.reviewRepo.find({
+      where: courseId ? { courseId } : {},
+    });
   }
 
-  // Obtém uma avaliação pelo ID
-  async findOne(id: number): Promise<Review> { // Usei async aqui
-    const review = this.reviews.find(r => r.id === id);
-    if (!review) {
-      throw new NotFoundException(`Review com ID ${id} não encontrada`);
-    }
+  async findOne(id: number): Promise<Review> {
+    const review = await this.reviewRepo.findOneBy({ id });
+    if (!review) throw new NotFoundException(`Review com ID ${id} não encontrada`);
     return review;
   }
 
-  // Atualiza uma avaliação
-  async update(id: number, updateDto: UpdateReviewDto): Promise<{ message: string; review: Review }> {
-    const review = await this.findOne(id);  // Adicionando await aqui para esperar a resolução da Promise
-
+  async update(
+    id: number,
+    updateDto: UpdateReviewDto,
+  ): Promise<{ message: string; review: Review }> {
+    const review = await this.findOne(id);
     if (updateDto.rating !== undefined) {
       if (updateDto.rating < 1 || updateDto.rating > 5) {
         throw new BadRequestException('Rating deve ser entre 1 e 5');
       }
-      review.rating = updateDto.rating; // Agora 'review' está resolvido, podemos acessar suas propriedades
+      review.rating = updateDto.rating;
     }
-
-    if (updateDto.comment !== undefined) {
-      review.comment = updateDto.comment;
-    }
-
-    return Promise.resolve({ message: 'Avaliação atualizada com sucesso', review });
+    if (updateDto.comment !== undefined) review.comment = updateDto.comment;
+    const updated = await this.reviewRepo.save(review);
+    return { message: 'Avaliação atualizada com sucesso', review: updated };
   }
 
-  // Remove uma avaliação
-  remove(id: number): Promise<{ message: string }> {
-    const index = this.reviews.findIndex(r => r.id === id);
-    if (index === -1) {
-      throw new NotFoundException(`Review com ID ${id} não encontrada`);
-    }
-    this.reviews.splice(index, 1);
-    return Promise.resolve({ message: 'Avaliação removida com sucesso' });
-  }
-
-  // Calcula a média de rating de um curso (para uso no Dashboard)
-  getAverageRating(courseId: number): number {
-    const courseReviews = this.reviews.filter(r => r.courseId === courseId);
-    if (courseReviews.length === 0) return 0;
-    const sum = courseReviews.reduce((acc, r) => acc + r.rating, 0);
-    return sum / courseReviews.length;
+  async remove(id: number): Promise<{ message: string }> {
+    const result = await this.reviewRepo.delete(id);
+    if (result.affected === 0) throw new NotFoundException(`Review com ID ${id} não encontrada`);
+    return { message: 'Avaliação removida com sucesso' };
   }
 }

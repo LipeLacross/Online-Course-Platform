@@ -1,13 +1,16 @@
-// File: src/purchases/purchases.module.ts
-
+// src/purchases/purchases.module.ts
 import { Module } from '@nestjs/common';
-import { PurchasesController } from './purchases.controller';
+import { TypeOrmModule } from '@nestjs/typeorm';
 import { PurchasesService } from './purchases.service';
+import { PurchasesController } from './purchases.controller';
+import { Purchase } from './entities/purchase.entity';
 
 @Module({
-  imports: [],
+  imports: [
+    TypeOrmModule.forFeature([Purchase]),  // já estava correto
+  ],
   controllers: [PurchasesController],
   providers: [PurchasesService],
-  exports: [PurchasesService], // Exporta para uso em outros módulos (Dashboard)
+  exports: [PurchasesService],
 })
 export class PurchasesModule {}

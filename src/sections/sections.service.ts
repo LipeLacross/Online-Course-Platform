@@ -1,53 +1,38 @@
+// importar InjectRepository e Repository e substituir lógica in-memory por repo.find, repo.save, etc.
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Section } from './entities/section.entity';
 import { CreateSectionDto } from './dto/create-section.dto';
 import { UpdateSectionDto } from './dto/update-section.dto';
-import { Section } from './entities/section.entity';
 
 @Injectable()
 export class SectionsService {
-  private sections: Section[] = [];
-  private nextId = 1;
+  constructor(@InjectRepository(Section) private sectionRepo: Repository<Section>) {}
 
-  // Ensure that create method returns a Promise<Section>
-  create(createDto: CreateSectionDto): Promise<Section> {
-    const section = new Section();
-    section.id = this.nextId++;
-    Object.assign(section, createDto);
-    this.sections.push(section);
-    return Promise.resolve(section); // Wrap return in Promise.resolve
+  create(dto: CreateSectionDto): Promise<Section> {
+    const sec = this.sectionRepo.create(dto);
+    return this.sectionRepo.save(sec);
   }
 
-  // Ensure findAll returns Promise<Section[]> (array of sections)
   findAll(courseId?: number): Promise<Section[]> {
-    if (courseId) {
-      return Promise.resolve(this.sections.filter(section => section.courseId === courseId));
-    }
-    return Promise.resolve(this.sections); // Wrap return in Promise.resolve
+    const opts = courseId ? { where: { courseId } } : {};
+    return this.sectionRepo.find(opts);
   }
 
-  // Ensure findOne returns Promise<Section>
-  findOne(id: number): Promise<Section> {
-    const section = this.sections.find(s => s.id === id);
-    if (!section) {
-      throw new NotFoundException(`Section with ID ${id} not found`);
-    }
-    return Promise.resolve(section); // Wrap return in Promise.resolve
+  async findOne(id: number): Promise<Section> {
+    const sec = await this.sectionRepo.findOneBy({ id });
+    if (!sec) throw new NotFoundException('Section not found');
+    return sec;
   }
 
-  // Ensure update method returns Promise<Section>
-  update(id: number, updateDto: UpdateSectionDto): Promise<Section> {
-    const section = this.findOne(id);  // Will throw error if section not found
-    Object.assign(section, updateDto);
-    return Promise.resolve(section); // Wrap return in Promise.resolve
+  async update(id: number, dto: UpdateSectionDto): Promise<Section> {
+    await this.sectionRepo.update(id, dto);
+    return this.findOne(id);
   }
 
-  // Ensure remove method returns Promise<{ message: string }>
-  remove(id: number): Promise<{ message: string }> {
-    const index = this.sections.findIndex(s => s.id === id);
-    if (index === -1) {
-      throw new NotFoundException(`Section with ID ${id} not found`);
-    }
-    this.sections.splice(index, 1);
-    return Promise.resolve({ message: 'Section removed successfully' }); // Wrap return in Promise.resolve
+  async remove(id: number): Promise<{ message: string }> {
+    await this.sectionRepo.delete(id);
+    return { message: 'Section removed' };
   }
 }

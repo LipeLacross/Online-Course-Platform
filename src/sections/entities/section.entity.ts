@@ -1,5 +1,6 @@
-// File: src/sections/entities/section.entity.ts
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, JoinColumn } from 'typeorm';
+import { Course } from '../../courses/entities/course.entity';
+import { Lesson } from '../../lessons/entities/lesson.entity';
 
 @Entity()
 export class Section {
@@ -7,4 +8,10 @@ export class Section {
   @Column() title: string;
   @Column() courseId: number;
   @Column() order: number;
+
+  @ManyToOne(() => Course, c => c.sections)
+  @JoinColumn({ name: 'courseId' })
+  course: Course;
+
+  @OneToMany(() => Lesson, l => l.section, { cascade: true }) lessons: Lesson[];
 }
