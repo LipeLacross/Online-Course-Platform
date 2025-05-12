@@ -1,4 +1,4 @@
-// File: src/config/database.module.ts
+// src/config/database.module.ts
 
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
